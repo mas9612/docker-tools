@@ -21,7 +21,7 @@ type imageInfo struct {
 
 func main() {
 	imageName, generation, force := parseArgs()
-	var imageIDs []imageInfo
+	var imageInfos []imageInfo
 
 	ctx := context.Background()
 	client, err := client.NewEnvClient()
@@ -38,7 +38,7 @@ func main() {
 		for _, repotag := range image.RepoTags {
 			repository := strings.Split(repotag, ":")
 			if repository[0] == *imageName {
-				imageIDs = append(imageIDs, imageInfo{
+				imageInfos = append(imageInfos, imageInfo{
 					ID:      image.ID,
 					Created: image.Created,
 					Name:    repotag,
@@ -47,15 +47,15 @@ func main() {
 		}
 	}
 
-	sort.Slice(imageIDs, func(i, j int) bool { return imageIDs[i].Created > imageIDs[j].Created })
+	sort.Slice(imageInfos, func(i, j int) bool { return imageInfos[i].Created > imageInfos[j].Created })
 
-	if *generation > len(imageIDs) {
-		*generation = len(imageIDs)
+	if *generation > len(imageInfos) {
+		*generation = len(imageInfos)
 	}
 	removeOptions := types.ImageRemoveOptions{
 		Force: *force,
 	}
-	for _, image := range imageIDs[*generation:] {
+	for _, image := range imageInfos[*generation:] {
 		_, err := client.ImageRemove(ctx, image.ID, removeOptions)
 		if err != nil {
 			log.Fatalf("[ERROR] client.ImageRemove(): %s\n", err)
